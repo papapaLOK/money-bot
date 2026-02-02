@@ -1,4 +1,5 @@
 # --- NOVÉ NASTAVENIA PRE MAXIMÁLNY ZISK ---
+from flask import Flask
 STARTING_BALANCE = 14.00
 CURRENT_BALANCE = STARTING_BALANCE
 MIN_SAFE_LIMIT = 0.05       # Bezpečnostná rezerva nad úplnou nulou
@@ -51,3 +52,4 @@ def run_web():
 
 # Spustíme web na pozadí, aby Render videl port
 threading.Thread(target=run_web).start()
+
