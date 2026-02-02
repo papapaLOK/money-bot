@@ -35,4 +35,19 @@ class AutonomousAgent:
             
             self.iteration += 1
             # Na Renderi odporúčam nechať 3600 (1 hodina), aby ho nezablokovali
+
             time.sleep(3600)
+            from flask import Flask
+import threading
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot beží!"
+
+def run_web():
+    app.run(host='0.0.0.0', port=10000)
+
+# Spustíme web na pozadí, aby Render videl port
+threading.Thread(target=run_web).start()
