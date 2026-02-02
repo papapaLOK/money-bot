@@ -1,55 +1,44 @@
-# --- NOVÉ NASTAVENIA PRE MAXIMÁLNY ZISK ---
-from flask import Flask
-STARTING_BALANCE = 14.00
-CURRENT_BALANCE = STARTING_BALANCE
-MIN_SAFE_LIMIT = 0.05       # Bezpečnostná rezerva nad úplnou nulou
-STRATEGY_AGGRESSION = 0.8  # Bot reinvestuje 80% zisku do rastu
-
-class AutonomousAgent:
-    def __init__(self, balance):
-        self.balance = balance
-        self.total_earned = 0.0
-        self.iteration = 1
-
-    def reinvest(self):
-        # Ak sme v zisku, bot agresívne investuje do škálovania
-        if self.balance > STARTING_BALANCE:
-            available_profit = self.balance - STARTING_BALANCE
-            investment = available_profit * STRATEGY_AGGRESSION
-            
-            # Kontrola, či po investícii zostaneme nad nulou
-            if (self.balance - investment) >= MIN_SAFE_LIMIT:
-                print(f"Balančný update: Reinvestujem {investment:.2f}€ pre maximálny rast...")
-                self.balance -= investment
-                return True
-        return False
-
-    def run(self):
-        print("BOT SPUSTENÝ V REŽIME 'MAXIMÁLNY ZISK'")
-        while True:  # Nekonečná slučka - zarába, koľko to pôjde
-            self.report_status()
-            job = self.find_opportunity()
-            profit = self.execute_action(job)
-            self.balance += profit
-            self.total_earned += profit
-            self.reinvest()
-            
-            self.iteration += 1
-            # Na Renderi odporúčam nechať 3600 (1 hodina), aby ho nezablokovali
-
-            time.sleep(3600)
-            from flask import Flask
+import os
+import time
+import random
 import threading
+from flask import Flask
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Bot si vytiahne tvoje maily z nastavení Renderu
+PAYPAL_MAIL = os.getenv("PAYPAL_EMAIL", "nepriradeny_paypal")
+NORMAL_MAIL = os.getenv("CONTACT_EMAIL", "nepriradeny_kontakt")
+
+# Tvoj základný kapitál (z tvojho plánu)
+STARTING_BALANCE = 14.00
+current_balance = STARTING_BALANCE
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Bot beží!"
+    return f"Agent pracuje pre: {PAYPAL_MAIL} | Aktuálny stav: {current_balance:.2f}€"
 
-def run_web():
-    app.run(host='0.0.0.0', port=10000)
+def bot_logic():
+    global current_balance
+    print(f"BOT SPUSTENÝ PRE: {PAYPAL_MAIL}")
+    while True:
+        # Simulácia zisku (tu neskôr napojíme reálne úlohy)
+        profit = random.uniform(0.01, 0.05)
+        current_balance += profit
+        
+        # REINVESTOVANIE (Tvoje pravidlo: reinvestovať, ale nikdy pod nulu)
+        if current_balance > STARTING_BALANCE:
+            reinvest = (current_balance - STARTING_BALANCE) * 0.5
+            if (current_balance - reinvest) >= STARTING_BALANCE:
+                current_balance -= reinvest
+        
+        print(f"Zostatok: {current_balance:.2f}€ | Mail: {PAYPAL_MAIL}")
+        time.sleep(3600)
 
-# Spustíme web na pozadí, aby Render videl port
-threading.Thread(target=run_web).start()
-
+if __name__ == "__main__":
+    # Web server pre Render na porte 10000
+    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=10000, use_reloader=False)).start()
+    bot_logic()
